@@ -1,0 +1,31 @@
+
+from email import message
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
+
+GUI = Tk()
+GUI.title('โปรแกรมคำนวณ')
+GUI.geometry('500x300')
+
+L1 = Label(GUI,text='กรอกจำนวนกุ้ง (กิโลกรัม)',font=('Angsana New',25))
+L1.pack()
+
+v_kilo = StringVar()
+
+E1 = ttk.Entry(GUI, textvariable = v_kilo, width=10, justify='right', font=('impact',30))
+E1.pack(pady=20)
+
+def Calc(event=None):
+    print('กำลังคำนวณ...กรุณารอสักครู่')
+    kilo = float(v_kilo.get())
+    print(kilo * 299)
+    calc_result = kilo * 299
+    messagebox.showinfo('รวมราคาทั้งหมด','ลูกค้าต้องจ่ายตังค์ทั้งหมด: {:,.2f} (กิโลกรัมละ 299 บาท)'.format(calc_result))
+
+B1 = ttk.Button(GUI,text='คำนวณราคา',command=Calc)
+B1.pack(ipadx=40,ipady=30,pady=20)
+
+E1.bind('<Return>',Calc) #ต้องใส่ event=None ไว้ในฟังชันก์ด้วย
+
+GUI.mainloop()
