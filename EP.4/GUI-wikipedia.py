@@ -1,4 +1,4 @@
-
+import webbrowser
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -17,7 +17,7 @@ GUI.title('โปรแกรมคำนวณ')
 GUI.geometry('800x600')
 
 tab = ttk.Notebook(GUI)
-tab.pack(fill=BOTH, expand=1)
+tab.pack(fill=BOTH, expand=True)
 
 T1 = Frame(tab)
 T2 = Frame(tab)
@@ -63,21 +63,33 @@ E2.pack(pady=10)
 
 wikipedia.set_lang('th')
 
-def Search():
+def Search(event=None):
     try:
         search = v_search.get()
         text = wikipedia.summary(search)
         print(text)
         v_result.set(text[:1000])
+
+        page = wikipedia.page(search)
+
+        def URL():
+            webbrowser.open(page.url, new=2)
+
+        B_moreInfo = ttk.Button(T2, text='more info', command=URL)
+        B_moreInfo.pack(ipadx=10, ipady=10)
+        
     except:
         v_result.set('ไม่มีข้อมูล')
 
+
+
 B2 = ttk.Button(T2, text='ค้นหา', image=icon_tab2, compound='left', command=Search)
-B2.pack(pady=10)
+B2.pack(pady=10,ipadx=10, ipady=10)
 
 v_result = StringVar()
 v_result.set('--------------Result----------------')
 result = Label(T2, textvariable=v_result, wraplength=550, justify='left', font=(None,10))
 result.pack()
+E2.bind('<Return>', Search)
 
 GUI.mainloop()
