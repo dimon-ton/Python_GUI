@@ -88,7 +88,7 @@ B2 = ttk.Button(T2, text='ค้นหา', image=icon_tab2, compound='left', co
 B2.pack(pady=10,ipadx=10, ipady=10)
 
 v_result = StringVar()
-# v_result.set('--------------Result----------------')
+v_result.set('--------------Result----------------')
 result = Label(T2, textvariable=v_result, wraplength=550, justify='left', font=(None,10))
 result.pack()
 
