@@ -3,7 +3,6 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import csv
-import fontTools
 import wikipedia
 from datetime import datetime
 
@@ -71,12 +70,14 @@ def Search(event=None):
         v_result.set(text[:1000])
 
         page = wikipedia.page(search)
+        result_url = page.url
+        print(result_url)
 
         def URL():
-            webbrowser.open(page.url, new=2)
+            webbrowser.open(result_url, new=2)
 
-        B_moreInfo = ttk.Button(T2, text='more info', command=URL)
-        B_moreInfo.pack(ipadx=10, ipady=10)
+        b_more = ttk.Button(T2, text='more info', command=URL)
+        b_more.pack(ipadx=10, ipady=10)  
         
     except:
         v_result.set('ไม่มีข้อมูล')
@@ -87,9 +88,10 @@ B2 = ttk.Button(T2, text='ค้นหา', image=icon_tab2, compound='left', co
 B2.pack(pady=10,ipadx=10, ipady=10)
 
 v_result = StringVar()
-v_result.set('--------------Result----------------')
+# v_result.set('--------------Result----------------')
 result = Label(T2, textvariable=v_result, wraplength=550, justify='left', font=(None,10))
 result.pack()
+
 E2.bind('<Return>', Search)
 
 GUI.mainloop()
