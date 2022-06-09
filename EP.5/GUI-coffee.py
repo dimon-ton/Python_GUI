@@ -1,4 +1,6 @@
+from cgitb import text
 from email import header
+from struct import pack
 from turtle import update
 import webbrowser
 from tkinter import *
@@ -7,6 +9,7 @@ from tkinter import messagebox
 import csv
 from numpy import imag, product
 from requests import head
+from setuptools import Command
 import wikipedia
 from datetime import datetime
 
@@ -34,8 +37,9 @@ tab.add(T1, text='กุ้ง',image=icon_tab1, compound='left')
 tab.add(T2, text='ค้นหาข้อมูล wikipedia',image=icon_tab2, compound='left')
 tab.add(T3, text='CAFE',image=icon_tab3, compound='left')
 #---------------------------------------TAB 1------------------------------------------
+#---------------------------------------Shrimp Selling Calculator----------------------
 
-L1 = Label(T1,text='กรอกจำนวนกุ้ง (กิโลกรัม)',font=('Angsana New',25))
+L1 = Label(T1, text='กรอกจำนวนกุ้ง (กิโลกรัม)', font=('Angsana New', 25))
 L1.pack(pady=10)
 
 v_kilo = StringVar()
@@ -53,12 +57,13 @@ def Calc(event=None):
     writetocsv(data)
     messagebox.showinfo('รวมราคาทั้งหมด','ลูกค้าต้องจ่ายตังค์ทั้งหมด: {:,.2f} (กิโลกรัมละ 299 บาท)'.format(calc_result))
 
-B1 = ttk.Button(T1,text='คำนวณราคา',command=Calc)
-B1.pack(ipadx=40,ipady=30,pady=20)
+B1 = ttk.Button(T1, text='คำนวณราคา', command=Calc)
+B1.pack(ipadx=40, ipady=30, pady=20)
 
 E1.bind('<Return>',Calc) #ต้องใส่ event=None ไว้ในฟังชันก์ด้วย
 
 #---------------------------------------TAB 2--------------------------------------
+#---------------------------------------Wikipedia Search---------------------------
 FONT1 = ('Angsana New', 25)
 L2 = Label(T2, text='ค้นหาข้อมูล wikipedia', font=FONT1,)
 L2.pack(pady=10)
@@ -102,6 +107,7 @@ result.pack()
 E2.bind('<Return>', Search)
 
 #---------------------------------------TAB 3--------------------------------------
+#---------------------------------------Coffee Cafe--------------------------------
 
 Bfont = ttk.Style()
 Bfont.configure('TButton',font=('Angsana New', 16))
@@ -114,7 +120,10 @@ allmenu = {}
 
 product = {'latte':{'name':'ลาเต้','price':30},
             'cappuccino':{'name':'คาปูชิโน่','price':35},
-            'expresso':{'name':'เอสเปรสโซ่','price':40}}
+            'expresso':{'name':'เอสเปรสโซ่','price':40},
+            'icegreentea':{'name':'ชาเขียวเย็น','price':40},
+            'icetea':{'name':'ชาเย็น','price':40},
+            'hottea':{'name':'ชาร้อน','price':35}}
 
 
 def UpdateTable():
@@ -135,7 +144,14 @@ def AddMenu(name='latte'):
         total = quan * product[name]['price']
         allmenu[name] = [product[name]['name'], product[name]['price'], quan, total]
 
+    resultTotal = 0
+    for a in allmenu:
+        resultTotal += allmenu[a][3]
+    v_resultTotal.set(f'รวมราคา: {resultTotal} บาท')
+    
     print(allmenu)
+    print(resultTotal)
+
 
 def Menu1():
     AddMenu('latte')
@@ -149,6 +165,27 @@ def Menu3():
     AddMenu('expresso')
     UpdateTable()
 
+def Menu4():
+    AddMenu('icegreentea')
+    UpdateTable()
+
+def Menu5():
+    AddMenu('icetea')
+    UpdateTable()
+
+def Menu6():
+    AddMenu('hottea')
+    UpdateTable()
+
+def Clear():
+    v_resultTotal.set('')
+    allmenu.clear()
+    for i in table.get_children():
+        table.delete(i)
+
+
+# ROW1
+
 B = ttk.Button(CF1, text='ลาเต้', image=icon_tab3, compound='top', command=Menu1)
 B.grid(row=0, column=0, ipadx=20, ipady=10)
 
@@ -158,14 +195,14 @@ B.grid(row=0, column=1, ipadx=20, ipady=10)
 B = ttk.Button(CF1, text='แอสเปรสโซ่', image=icon_tab3, compound='top', command=Menu3)
 B.grid(row=0, column=3, ipadx=20, ipady=10)
 
-# ROW1
-B = ttk.Button(CF1, text='ชาเขียวเย็น', image=icon_tab3, compound='top')
+
+B = ttk.Button(CF1, text='ชาเขียวเย็น', image=icon_tab3, compound='top', command=Menu4)
 B.grid(row=1, column=0, ipadx=20, ipady=10)
 
-B = ttk.Button(CF1, text='ชาเย็น', image=icon_tab3, compound='top')
+B = ttk.Button(CF1, text='ชาเย็น', image=icon_tab3, compound='top', command=Menu5)
 B.grid(row=1, column=1, ipadx=20, ipady=10)
 
-B = ttk.Button(CF1, text='ชาร้อน', image=icon_tab3, compound='top')
+B = ttk.Button(CF1, text='ชาร้อน', image=icon_tab3, compound='top', command=Menu6)
 B.grid(row=1, column=3, ipadx=20, ipady=10)
 
 # table
@@ -184,5 +221,12 @@ table.pack()
 for hd, hw in zip(header, hwidth):
     table.heading(hd, text=hd) #ใส่หัวตาราง
     table.column(hd ,width=hw) #ปรับความกว้างของคอลัมน์
+
+v_resultTotal = StringVar()
+total_label = ttk.Label(CF2, textvariable=v_resultTotal, anchor='w', font=('Angsana New', 18))
+total_label.pack(pady=10, fill='both')
+
+BClear = ttk.Button(CF2, text='เคลียร์ข้อมูล', command=Clear)
+BClear.pack(pady=5)
 
 GUI.mainloop()
