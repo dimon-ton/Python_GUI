@@ -1,3 +1,6 @@
+from msilib.schema import Font
+from tkinter import font
+from tkinter.font import nametofont
 import webbrowser
 from tkinter import *
 from tkinter import ttk
@@ -5,6 +8,8 @@ from tkinter import messagebox
 import csv
 import wikipedia
 from datetime import datetime
+
+
 
 def writetocsv(data, filename='data.csv'):
     with open(filename, 'a',newline='',encoding='utf-8') as file:
@@ -15,20 +20,28 @@ GUI = Tk()
 GUI.title('โปรแกรมคำนวณ')
 GUI.geometry('1100x600')
 
+# df = nametofont("TkDefaultFont")
+# df.configure(family="Angsana New", size=12)
+GUI.option_add("*Font", "aerial")
+
+
 tab = ttk.Notebook(GUI)
 tab.pack(fill=BOTH, expand=True)
 
 T1 = Frame(tab)
 T2 = Frame(tab)
 T3 = Frame(tab)
+T4 = Frame(tab)
 
 icon_tab1 = PhotoImage(file='EP.4/tab1.png')
 icon_tab2 = PhotoImage(file='EP.4/tab2.png')
 icon_tab3 = PhotoImage(file='EP.5/tab3.png')
+icon_tab4 = PhotoImage(file='EP.7/tab4.png')
 
 tab.add(T1, text='กุ้ง',image=icon_tab1, compound='left')
 tab.add(T2, text='ค้นหาข้อมูล wikipedia',image=icon_tab2, compound='left')
 tab.add(T3, text='CAFE',image=icon_tab3, compound='left')
+tab.add(T4, text='Member',image=icon_tab4, compound='left')
 #---------------------------------------TAB 1------------------------------------------
 #---------------------------------------Shrimp Selling Calculator----------------------
 
@@ -278,5 +291,35 @@ def HistoryWindow(event=None):
     HIS.mainloop()
 
 GUI.bind('<F1>', HistoryWindow)
+#---------------------------------------TAB 4 Member--------------------------------------
+def ET(GUI, text, strVar, font=('Angsana New', 20)):
+    T = Label(GUI, text=text, font=(None, 15)).pack()
+    E = ttk.Entry(GUI, textvariable=strVar, font=font)
+    return E
+
+def ET2(GUI, text, strVar, font=('Angsana New', 20)):
+    T = Label(GUI, text=text, font=(None, 15))
+    E = ttk.Entry(GUI, textvariable=strVar, font=font)
+    return (T,E)
+
+def ET3(GUI, text, font=('Angsana New', 20)):
+    v_strvar = StringVar()
+    T = Label(GUI, text=text, font=(None, 15)).pack()
+    E = ttk.Entry(GUI, textvariable=v_strvar, font=font)
+    return (T,E, v_strvar)
+
+v_fullname = StringVar()
+E41 = ET(T4, 'ชื่อ-สกุล',v_fullname)
+E41.place(x=300, y=50)
+
+v_tel = StringVar()
+L, E42 = ET2(T4, 'เบอร์โทร', v_tel)
+E42.place(x=50, y=100)
+L.place(x=50, y=50)
+
+L, E43, v_usertype = ET3(T4, 'ประเภทสมาชิก')
+E43.pack()
+
+# T4.bind('<F2>', Lambda x: print(v_usertype.get()))
 
 GUI.mainloop()
