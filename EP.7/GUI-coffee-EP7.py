@@ -1,4 +1,6 @@
+from ast import Lambda
 from msilib.schema import Font
+from struct import pack
 from tkinter import font
 from tkinter.font import nametofont
 import webbrowser
@@ -305,21 +307,71 @@ def ET2(GUI, text, strVar, font=('Angsana New', 20)):
 def ET3(GUI, text, font=('Angsana New', 20)):
     v_strvar = StringVar()
     T = Label(GUI, text=text, font=(None, 15)).pack()
-    E = ttk.Entry(GUI, textvariable=v_strvar, font=font)
+    E = ttk.Entry(GUI, textvariable=v_strvar, font=font, width=45)
     return (T,E, v_strvar)
 
-v_fullname = StringVar()
-E41 = ET(T4, 'ชื่อ-สกุล',v_fullname)
-E41.place(x=300, y=50)
+# v_fullname = StringVar()
+# E41 = ET(T4, 'ชื่อ-สกุล',v_fullname)
+# E41.place(x=300, y=50)
 
-v_tel = StringVar()
-L, E42 = ET2(T4, 'เบอร์โทร', v_tel)
-E42.place(x=50, y=100)
-L.place(x=50, y=50)
+# v_tel = StringVar()
+# L, E42 = ET2(T4, 'เบอร์โทร', v_tel)
+# E42.place(x=50, y=100)
+# L.place(x=50, y=50)
+F41 = Frame(T4)
+F41.place(x=50, y=50)
 
-L, E43, v_usertype = ET3(T4, 'ประเภทสมาชิก')
+v_memberCode = StringVar()
+
+L = Label(T4, text='รหัสสมาชิก: ', font=('Angsana New', 14)).place(x=50, y=20)
+LCode = Label(T4, textvariable=v_memberCode, font=('Angsana New', 14)).place(x=120, y=20)
+v_memberCode.set('---code---')
+
+L, E41, v__fullname = ET3(F41, 'ชื่อ-สกุล')
+E41.pack()
+
+L, E42, v_tel = ET3(F41, 'เบอร์โทร')
+E42.pack()
+
+L, E44, v_point = ET3(F41, 'คะแนนสะสม')
+E44.pack()
+
+L, E43, v_usertype = ET3(F41, 'ประเภทสมาชิก')
 E43.pack()
+v_usertype.set('general')
 
-# T4.bind('<F2>', Lambda x: print(v_usertype.get()))
+v_point.set('0')
+
+# v_usertype.set('TEST')
+# E43.bind('<Return>', Lambda x: print(v_usertype.get()))
+
+def SaveMember():
+    code = 'M-1001'
+    fullname = v__fullname.get()
+    tel = v_tel.get()
+    point = v_point.get()
+    usertype = v_usertype.get()
+    print(fullname, tel, point, usertype)
+    table_member.insert('', 0, values=[code, fullname, tel, usertype, point])
+
+B = ttk.Button(F41, text='บันทึก', command=SaveMember)
+B.pack()
+
+# Member Table
+F42 = Frame(T4)
+F42.place(x=500, y=50)
+
+header = ['Code', 'ชื่อ-สกุล', 'เบอร์โทร', 'ประเภทสมาชิก', 'คะแนนสะสม']
+hwidth = [50, 180, 100, 100, 100]
+
+table_member = ttk.Treeview(F42, columns=header, show='headings', height=15)
+table_member.pack()
+
+# for hd in header:
+#     table_member.heading(hd, text=hd)
+
+for hd, hw in zip(header, hwidth):
+    table_member.heading(hd, text=hd) #ใส่หัวตาราง
+    table_member.column(hd ,width=hw) #ปรับความกว้างของคอลัมน์
 
 GUI.mainloop()
