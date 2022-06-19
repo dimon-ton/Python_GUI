@@ -325,9 +325,9 @@ v_memberCode = StringVar()
 
 L = Label(T4, text='รหัสสมาชิก: ', font=('Angsana New', 14)).place(x=50, y=20)
 LCode = Label(T4, textvariable=v_memberCode, font=('Angsana New', 14)).place(x=120, y=20)
-v_memberCode.set('---code---')
+v_memberCode.set('M-1001')
 
-L, E41, v__fullname = ET3(F41, 'ชื่อ-สกุล')
+L, E41, v_fullname = ET3(F41, 'ชื่อ-สกุล')
 E41.pack()
 
 L, E42, v_tel = ET3(F41, 'เบอร์โทร')
@@ -346,16 +346,59 @@ v_point.set('0')
 # E43.bind('<Return>', Lambda x: print(v_usertype.get()))
 
 def SaveMember():
-    code = 'M-1001'
-    fullname = v__fullname.get()
+    code = v_memberCode.get()
+    fullname = v_fullname.get()
     tel = v_tel.get()
     point = v_point.get()
     usertype = v_usertype.get()
     print(fullname, tel, point, usertype)
+    writetocsv([code, fullname, tel, usertype, point], 'member.csv') #บันทึกสมาชิกใหม่
     table_member.insert('', 0, values=[code, fullname, tel, usertype, point])
+    UpdateTable_Member()
 
-B = ttk.Button(F41, text='บันทึก', command=SaveMember)
-B.pack()
+    v_fullname.set('')
+    v_tel.set('')
+    v_usertype.set('general')
+    v_point.set('0')
+
+
+BSave = ttk.Button(F41, text='บันทึก', command=SaveMember)
+BSave.pack()
+# Edit button
+def EditMember():
+    code = v_memberCode.get()
+    allmember[code][1] = v_fullname.get()
+    allmember[code][2] = v_tel.get()
+    allmember[code][3] = v_usertype.get()
+    allmember[code][4] = v_point.get()
+    updateCSV(list(allmember.values()), 'member.csv')
+    UpdateTable_Member()
+
+    v_fullname.set('')
+    v_tel.set('')
+    v_usertype.set('general')
+    v_point.set('0')
+
+    BEdit.state(['disabled'])
+    BSave.state(['!disabled'])
+
+
+
+BEdit = ttk.Button(F41, text='แก้ไข', command=EditMember)
+BEdit.pack()
+#New Button
+def NewMember():
+    UpdateTable_Member()
+
+    v_fullname.set('')
+    v_tel.set('')
+    v_usertype.set('general')
+    v_point.set('0')
+
+    BEdit.state(['disabled'])
+    BSave.state(['!disabled'])
+
+BNew = ttk.Button(F41, text='New', command=NewMember).pack()
 
 # Member Table
 F42 = Frame(T4)
@@ -374,4 +417,63 @@ for hd, hw in zip(header, hwidth):
     table_member.heading(hd, text=hd) #ใส่หัวตาราง
     table_member.column(hd ,width=hw) #ปรับความกว้างของคอลัมน์
 
+#update CSV after DeleteMember
+def updateCSV(data, filename='data.csv'):
+    with open(filename, 'w',newline='',encoding='utf-8') as file:
+        fw = csv.writer(file) #fw = file writer
+        fw.writerows(data) # writes = replace with list
+
+# delete data in table
+def DeleteMember(event):
+    select = table_member.selection() #เลือก item
+    data = table_member.item(select)['values']
+    print(data)
+    del allmember[data[0]]
+    updateCSV(list(allmember.values()), 'member.csv')
+    UpdateTable_Member()
+
+table_member.bind('<Delete>', DeleteMember)
+
+
+# Edit Table_member
+def UpdateMemberInfo(event):
+    select = table_member.selection()
+    code = table_member.item(select)['values'][0]
+    print('UpdateMemberInfo', allmember[code])
+
+    memberinfo = allmember[code]
+    v_memberCode.set(memberinfo[0])
+    v_fullname.set(memberinfo[1])
+    v_tel.set(memberinfo[2])
+    v_point.set(memberinfo[4])
+    v_usertype.set(memberinfo[3])
+
+    BEdit.state(['!disabled'])
+    BSave.state(['disabled'])
+
+table_member.bind('<Double-1>', UpdateMemberInfo)
+
+
+# Update Table_Member
+last_member = '0'
+allmember = {}
+
+def UpdateTable_Member():
+    global last_member
+    with open('member.csv', newline='', encoding='utf-8') as file:
+        fr = csv.reader(file)
+        table_member.delete(*table_member.get_children())
+        for row in fr:
+            table_member.insert('', 0, value=row)
+            code = row[0]
+            allmember[code] = row
+
+    print(row)
+    last_member = row[0]
+    next_member = int(last_member.split('-')[1]) + 1
+    v_memberCode.set('M-{}'.format(next_member))
+    print(allmember)
+
+BEdit.state(['disabled'])
+UpdateTable_Member()
 GUI.mainloop()
