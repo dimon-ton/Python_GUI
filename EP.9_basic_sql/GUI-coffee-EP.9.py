@@ -5,6 +5,7 @@ from tkinter import messagebox
 import csv
 import wikipedia
 from datetime import datetime
+from memberdb import *
 
 
 
@@ -371,6 +372,7 @@ F41 = Frame(T4)
 F41.place(x=50, y=50)
 
 v_memberCode = StringVar()
+v_databaseCode = IntVar()
 
 L = Label(T4, text='รหัสสมาชิก: ', font=('Angsana New', 14)).place(x=50, y=20)
 LCode = Label(T4, textvariable=v_memberCode, font=('Angsana New', 14)).place(x=120, y=20)
@@ -401,8 +403,9 @@ def SaveMember():
     point = v_point.get()
     usertype = v_usertype.get()
     print(fullname, tel, point, usertype)
-    writetocsv([code, fullname, tel, usertype, point], 'member.csv') #บันทึกสมาชิกใหม่
-    table_member.insert('', 0, values=[code, fullname, tel, usertype, point])
+    #writetocsv([code, fullname, tel, usertype, point], 'member.csv') #บันทึกสมาชิกใหม่
+    Insert_member(code, fullname, tel, usertype, point)
+    #table_member.insert('', 0, values=[code, fullname, tel, usertype, point])
     UpdateTable_Member()
 
     v_fullname.set('')
@@ -415,12 +418,17 @@ BSave = ttk.Button(F41, text='บันทึก', command=SaveMember)
 BSave.pack()
 # Edit button
 def EditMember():
-    code = v_memberCode.get()
-    allmember[code][1] = v_fullname.get()
-    allmember[code][2] = v_tel.get()
-    allmember[code][3] = v_usertype.get()
-    allmember[code][4] = v_point.get()
-    updateCSV(list(allmember.values()), 'member.csv')
+    code = v_databaseCode.get() # get latest code from database
+    allmember[code][2] = v_fullname.get()
+    allmember[code][3] = v_tel.get()
+    allmember[code][4] = v_usertype.get()
+    allmember[code][5] = v_point.get()
+    #updateCSV(list(allmember.values()), 'member.csv')
+    Update_member(code, 'fullname', v_fullname.get())
+    Update_member(code, 'tel', v_tel.get())
+    Update_member(code, 'usertype', v_usertype.get())
+    Update_member(code, 'points', v_point.get())
+
     UpdateTable_Member()
 
     v_fullname.set('')
@@ -453,8 +461,8 @@ BNew = ttk.Button(F41, text='New', command=NewMember).pack()
 F42 = Frame(T4)
 F42.place(x=500, y=50)
 
-header = ['Code', 'ชื่อ-สกุล', 'เบอร์โทร', 'ประเภทสมาชิก', 'คะแนนสะสม']
-hwidth = [50, 180, 100, 100, 100]
+header = ['ID', 'Code', 'ชื่อ-สกุล', 'เบอร์โทร', 'ประเภทสมาชิก', 'คะแนนสะสม']
+hwidth = [30, 50, 180, 100, 100, 100]
 
 table_member = ttk.Treeview(F42, columns=header, show='headings', height=15)
 table_member.pack()
@@ -474,15 +482,21 @@ def updateCSV(data, filename='data.csv'):
 
 # delete data in table
 def DeleteMember(event=None):
-    select = table_member.selection() #เลือก item
-    if len(select) != 0:
-        data = table_member.item(select)['values']
-        print(data)
-        del allmember[data[0]]
-        updateCSV(list(allmember.values()), 'member.csv')
-        UpdateTable_Member()
+    choice = messagebox.askyesno('ลบรายการ', 'คุณต้องการลบข้อมูลใช่หรือไม่')
+    print(choice)
+    if choice == True:
+        select = table_member.selection() #เลือก item
+        if len(select) != 0:
+            data = table_member.item(select)['values']
+            print(data)
+            del allmember[data[0]]
+            Delete_member(data[0])
+            #updateCSV(list(allmember.values()), 'member.csv')
+            UpdateTable_Member()
+        else:
+            messagebox.showwarning('เกิดข้อผิดพลาด', 'กรุณาเลือกรายการก่อนลบข้อมูล')
     else:
-        messagebox.showwarning('เกิดข้อผิดพลาด', 'กรุณาเลือกรายการก่อนลบข้อมูล')
+        pass
 
 table_member.bind('<Delete>', DeleteMember)
 
@@ -492,14 +506,15 @@ def UpdateMemberInfo(event=None):
     select = table_member.selection()
     if len(select) != 0:
         code = table_member.item(select)['values'][0]
+        v_databaseCode.set(code)
         print('UpdateMemberInfo', allmember[code])
 
         memberinfo = allmember[code]
-        v_memberCode.set(memberinfo[0])
-        v_fullname.set(memberinfo[1])
-        v_tel.set(memberinfo[2])
-        v_point.set(memberinfo[4])
-        v_usertype.set(memberinfo[3])
+        v_memberCode.set(memberinfo[1])
+        v_fullname.set(memberinfo[2])
+        v_tel.set(memberinfo[3])
+        v_point.set(memberinfo[5])
+        v_usertype.set(memberinfo[4])
 
         BEdit.state(['!disabled'])
         BSave.state(['disabled'])
@@ -515,16 +530,15 @@ allmember = {}
 
 def UpdateTable_Member():
     global last_member
-    with open('member.csv', newline='', encoding='utf-8') as file:
-        fr = csv.reader(file)
-        table_member.delete(*table_member.get_children())
-        for row in fr:
-            table_member.insert('', 0, value=row)
-            code = row[0]
-            allmember[code] = row
+    fr = View_member()
+    table_member.delete(*table_member.get_children())
+    for row in fr:
+        table_member.insert('', 0, value=row)
+        code = row[0]
+        allmember[code] = list(row) # convert tuple to list
 
     print(row)
-    last_member = row[0]
+    last_member = row[1] # select member code
     next_member = int(last_member.split('-')[1]) + 1
     v_memberCode.set('M-{}'.format(next_member))
     print(allmember)
@@ -550,5 +564,8 @@ def SearchName():
 member_rcmenu.add_command(label='Google Search Name', command=SearchName)
 
 BEdit.state(['disabled'])
-UpdateTable_Member()
+try:
+    UpdateTable_Member()
+except:
+    print('กรุณากรอกข้อมูลอย่างน้อย 1 รายการ')
 GUI.mainloop()
