@@ -507,8 +507,6 @@ def UpdateMemberInfo(event=None):
     if len(select) != 0:
         code = table_member.item(select)['values'][0]
         v_databaseCode.set(code)
-        print('UpdateMemberInfo', allmember[code])
-
         memberinfo = allmember[code]
         v_memberCode.set(memberinfo[1])
         v_fullname.set(memberinfo[2])
