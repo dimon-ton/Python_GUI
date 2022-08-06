@@ -6,7 +6,8 @@ import csv
 import wikipedia
 from datetime import datetime
 from memberdb import *
-
+from productdb import *
+from menuFunction import *
 
 
 def writetocsv(data, filename='data.csv'):
@@ -50,10 +51,19 @@ filemenu.add_command(label='Exit', command=lambda: GUI.destroy())
 member_menu = Menu(menubar, tearoff=0)
 menubar.add_cascade(label='Member', menu=member_menu)
 #------------------------------------------------------------------------
+# Product Menu
+addmember = AddMember()
+
+Productmenu = Menu(menubar, tearoff=0)
+menubar.add_cascade(label='Product', menu=Productmenu)
+Productmenu.add_command(label='Add Product', command=addmember.command)
+#------------------------------------------------------------------------
 # Help Menu
 help_menu = Menu(menubar, tearoff=0)
 menubar.add_cascade(label='Help', menu=help_menu)
 help_menu.add_command(label='Contact US', command=lambda: webbrowser.open('https://www.facebook.com/saichon.namoom/'))
+
+
 
 
 def About():
