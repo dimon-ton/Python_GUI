@@ -7,6 +7,7 @@ class ProductIcon:
     def __init__(self):
         self.quantity = None
         self.table_product = None
+        self.v_radio = None
     
     def popup(self):
         # Product GUI
@@ -27,6 +28,8 @@ class ProductIcon:
             self.table_product.heading(hd, text=hd) #ใส่หัวตาราง
             self.table_product.column(hd ,width=hw) #ปรับความกว้างของคอลัมน์
 
+        
+        self.table_product.bind('<Double-1>', self.change_status)
         self.insert_table()
 
         PGUI.mainloop()
@@ -34,10 +37,33 @@ class ProductIcon:
     def command(self):
         self.popup()
 
+    def change_status(self, event=None):
+        select = self.table_product.selection()
+        pid = self.table_product.item(select)['values'][0]
+        print('PID: ',pid)
+
+        SGUI = Toplevel()
+        SGUI.geometry('400x400')
+        self.v_radio = StringVar()
+        RB1 = ttk.Radiobutton(SGUI, text='Show Icon', variable=self.v_radio, value='show', command=lambda x=None: insert_product_status(int(pid), 'show'))
+        RB2 = ttk.Radiobutton(SGUI, text='Not Show Icon', variable=self.v_radio, value='', command=lambda x=None: insert_product_status(int(pid), ''))
+        RB1.invoke() # เขตค่า Default ของ  radio button
+
+        RB1.pack()
+        RB2.pack()
+
+        # Dropdown
+        dropdown = ttk.Combobox(SGUI, values=['แสดงไอคอน', 'ไม่แสดงไอคอน'])
+        dropdown.pack()
+
+        SGUI.mainloop()
+
     def insert_table(self):
         data = View_product_table_icon()
         for d in data:
-            self.table_product.insert('', 'end', values=d)
+            row = list(d)
+            row.append('✅')
+            self.table_product.insert('', 'end', values=row)
 
 class AddProduct:
     def __init__(self):
