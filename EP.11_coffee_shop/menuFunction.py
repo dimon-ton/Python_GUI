@@ -43,19 +43,27 @@ class ProductIcon:
         print('PID: ',pid)
 
         SGUI = Toplevel()
-        SGUI.geometry('400x400')
+        SGUI.geometry('400x200')
         self.v_radio = StringVar()
         RB1 = ttk.Radiobutton(SGUI, text='Show Icon', variable=self.v_radio, value='show', command=lambda x=None: insert_product_status(int(pid), 'show'))
         RB2 = ttk.Radiobutton(SGUI, text='Not Show Icon', variable=self.v_radio, value='', command=lambda x=None: insert_product_status(int(pid), ''))
-        RB1.invoke() # เขตค่า Default ของ  radio button
+        #RB1.invoke() # เขตค่า Default ของ  radio button
 
-        RB1.pack()
+        RB1.pack(pady=20)
         RB2.pack()
 
+        check = View_product_status(pid)
+
+        if check[-1] == 'show':
+            RB1.invoke()
+        else:
+            RB2.invoke()
+
         # Dropdown
+        '''
         dropdown = ttk.Combobox(SGUI, values=['แสดงไอคอน', 'ไม่แสดงไอคอน'])
         dropdown.pack()
-
+        '''
         SGUI.mainloop()
 
     def insert_table(self):

@@ -3,7 +3,6 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import csv
-import wikipedia
 from datetime import datetime
 from memberdb import *
 from productdb import *
