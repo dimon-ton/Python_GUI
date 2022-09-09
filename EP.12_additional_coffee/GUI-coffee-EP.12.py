@@ -19,7 +19,7 @@ GUI.title('โปรแกรมคำนวณ')
 GUI.iconbitmap('EP.8\Kzzu-I-Love-You-Coffee-brown.ico')
 
 W = 1100
-H = 600
+H = 630
 MW = GUI.winfo_screenwidth()
 MH = GUI.winfo_screenheight()
 
@@ -186,6 +186,8 @@ for i, (k, v) in enumerate(product.items()):
     if column == column_quan:
         column = 0
         row += 1
+
+    print('IMG: ', v['icon'])
     B = ttk.Button(CF1, text=v['name'], image=icon_tab3, compound='top')
     B.configure(command=lambda m=k: AddMenu(m))
     B.grid(row=row, column=column)
