@@ -202,6 +202,13 @@ for i, (k, v) in enumerate(product.items()):
     B.grid(row=row, column=column)
     column += 1
 
+addproduct.button_list = button_dict
+addproduct.button_frame = CF1
+
+product_icon.button_list = button_dict
+product_icon.button_frame = CF1
+
+print(button_dict)
 def testclearButton(event):
     for b in button_dict.values():
         b['button'].grid_forget()

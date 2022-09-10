@@ -10,6 +10,8 @@ class ProductIcon:
         self.quantity = None
         self.table_product = None
         self.v_radio = None
+        self.button_list = None
+        self.button_frame = None
     
     def popup(self):
         # Product GUI
@@ -71,6 +73,8 @@ class ProductIcon:
             print('closed')
             SGUI.destroy()
             self.insert_table()
+            self.clearButton()
+            self.create_button()
 
         SGUI.protocol('WM_DELETE_WINDOW', check_close)
 
@@ -94,6 +98,42 @@ class ProductIcon:
 
             self.table_product.insert('', 'end', values=row)
 
+     # Refresh หน้าแสดงปุ่ม
+    def clearButton(self):
+        for b in self.button_list.values():
+            b['button'].destroy()
+
+    def create_button(self):
+
+        product = product_icon_list()
+
+        global button_dict
+        button_dict = {}
+
+        row = 0
+        column = 0
+        column_quan = 3 # ปรับค่านี้เพื่อสร้างจำนวนคอลัมน์
+
+        for i, (k, v) in enumerate(product.items()):
+            if column == column_quan:
+                column = 0
+                row += 1
+
+            print('IMG: ', v['icon'])
+            new_icon = PhotoImage(file=v['icon'])
+
+            B = ttk.Button(self.button_frame, text=v['name'], compound='top')
+            button_dict[v['id']] = {'button':B, 'row':row, 'column':column}
+
+            B.configure(image=new_icon)
+            B.image = new_icon
+
+            B.configure(command=lambda m=k: AddMenu(m))
+            B.grid(row=row, column=column)
+            column += 1
+
+        self.button_list = button_dict
+
 class AddProduct:
     def __init__(self):
         self.v_productid = None
@@ -102,6 +142,8 @@ class AddProduct:
         self.v_imgpath = None
         self.MGUI = None
         self.ProductImage = None
+        self.button_list = None
+        self.button_frame = None
 
     def popup(self):
         self.MGUI = Toplevel()
@@ -143,7 +185,7 @@ class AddProduct:
         self.ProductImage = Label(self.MGUI, textvariable=self.v_imgpath, image=img, compound='top')
         self.ProductImage.pack()
 
-        Bselect = ttk.Button(self.MGUI, text='เลือกรูปสินค้า (50 x 50 px)', command=self.selectFile)
+        Bselect = ttk.Button(self.MGUI, text='เลือกรูปสินค้า (120 x 120 px)', command=self.selectFile)
         Bselect.pack(pady=10)
 
         Bsave = ttk.Button(self.MGUI, text='บันทึก', command=self.saveproduct)
@@ -182,3 +224,41 @@ class AddProduct:
         self.v_price.set('')
         self.v_imgpath.set('')
         View_product()
+
+        self.clearButton()
+        self.create_button()
+    # Refresh หน้าแสดงปุ่ม
+    def clearButton(self):
+        for b in self.button_list.values():
+            b['button'].destroy()
+
+    def create_button(self):
+
+        product = product_icon_list()
+
+        global button_dict
+        button_dict = {}
+
+        row = 0
+        column = 0
+        column_quan = 3 # ปรับค่านี้เพื่อสร้างจำนวนคอลัมน์
+
+        for i, (k, v) in enumerate(product.items()):
+            if column == column_quan:
+                column = 0
+                row += 1
+
+            print('IMG: ', v['icon'])
+            new_icon = PhotoImage(file=v['icon'])
+
+            B = ttk.Button(self.button_frame, text=v['name'], compound='top')
+            button_dict[v['id']] = {'button':B, 'row':row, 'column':column}
+
+            B.configure(image=new_icon)
+            B.image = new_icon
+
+            B.configure(command=lambda m=k: AddMenu(m))
+            B.grid(row=row, column=column)
+            column += 1
+
+            # self.button_list = button_dict
