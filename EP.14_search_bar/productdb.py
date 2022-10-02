@@ -126,5 +126,16 @@ if __name__ == '__main__':
     x = product_icon_list()
     print(x)
 
+def update_product(pid, field, data):
+    with conn:
+        command = 'UPDATE product SET {} = (?) WHERE productid = (?)'.format(field)
+        c.execute(command, ([data, pid]))
+    conn.commit()
+    print('updated', (pid, data))
 
-
+def Delete_product(ID):
+    with conn:
+        command = 'DELETE FROM product WHERE ID = (?)'
+        c.execute(command, ([ID]))
+    conn.commit()
+    print('deleted')

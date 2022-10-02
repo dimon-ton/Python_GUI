@@ -17,6 +17,8 @@ def writetocsv(data, filename='data.csv'):
 GUI = Tk()
 GUI.title('โปรแกรมคำนวณ')
 GUI.iconbitmap('EP.8\Kzzu-I-Love-You-Coffee-brown.ico')
+#full screen after run
+# GUI.state('zoomed')
 
 #----------------------------------------------------------------
 style  = ttk.Style()

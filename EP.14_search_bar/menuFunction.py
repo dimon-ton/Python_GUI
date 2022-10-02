@@ -144,10 +144,14 @@ class AddProduct:
         self.ProductImage = None
         self.button_list = None
         self.button_frame = None
+        self.table_product = None
+        self.Bsave = None
+        self.Bedit = None
+        self.Badd = None
 
     def popup(self):
         self.MGUI = Toplevel()
-        self.MGUI.geometry('500x700')
+        self.MGUI.geometry('1200x900')
         self.MGUI.title('Add Product')
 
         self.v_productid = StringVar()
@@ -155,43 +159,71 @@ class AddProduct:
         self.v_price = StringVar()
         self.v_imgpath = StringVar()
 
-        L = Label(self.MGUI, text='เพิ่มรายการสินค้า', font=(None, 30))
+        Fadd = Frame(self.MGUI, width=800)
+        Fadd.place(x=50, y=50)
+
+        L = Label(Fadd, text=' '*50, font=(None, 20)).pack()
+        
+
+        L = Label(Fadd, text='เพิ่มรายการสินค้า', font=(None, 20))
         L.pack()
 
         
-        L = Label(self.MGUI, text='รหัสสินค้า', font=(None, 30))
+        L = Label(Fadd, text='รหัสสินค้า', font=(None, 20))
         L.pack(pady=10)
 
         
-        E2 = ttk.Entry(self.MGUI, textvariable=self.v_productid, font=(None, 20))
+        E2 = ttk.Entry(Fadd, textvariable=self.v_productid, font=(None, 20))
         E2.pack(pady=10)
 
-        L = Label(self.MGUI, text='ชื่อสินค้า', font=(None, 30))
+        L = Label(Fadd, text='ชื่อสินค้า', font=(None, 20))
         L.pack(pady=10)
 
         
-        E3 = ttk.Entry(self.MGUI, textvariable=self.v_title, font=(None, 20))
+        E3 = ttk.Entry(Fadd, textvariable=self.v_title, font=(None, 20))
         E3.pack(pady=10)
 
-        L = Label(self.MGUI, text='ราคา', font=(None, 30))
+        L = Label(Fadd, text='ราคา', font=(None, 20))
         L.pack(pady=10)
 
         
-        E4 = ttk.Entry(self.MGUI, textvariable=self.v_price, font=(None, 20))
+        E4 = ttk.Entry(Fadd, textvariable=self.v_price, font=(None, 20))
         E4.pack(pady=10)
 
         img = PhotoImage(file='EP.13_about_button\default_icon.png')
 
-        self.ProductImage = Label(self.MGUI, textvariable=self.v_imgpath, image=img, compound='top')
+        self.ProductImage = Label(Fadd, textvariable=self.v_imgpath, image=img, compound='top')
         self.ProductImage.pack()
 
-        Bselect = ttk.Button(self.MGUI, text='เลือกรูปสินค้า (120 x 120 px)', command=self.selectFile)
+        Bselect = ttk.Button(Fadd, text='เลือกรูปสินค้า (128 x 128 px)', command=self.selectFile)
         Bselect.pack(pady=10)
 
-        Bsave = ttk.Button(self.MGUI, text='บันทึก', command=self.saveproduct)
-        Bsave.pack(pady=10, ipadx=20, ipady=10)
+        self.Bsave = ttk.Button(Fadd, text='บันทึก', command=self.saveproduct)
+        self.Bsave.pack(pady=10, ipadx=20, ipady=10)
 
-        self.MGUI.mainloop()
+        self.Bedit = ttk.Button(Fadd, text='แก้ไข', command=self.update_product_to_database)
+        self.Bedit.pack(pady=10, ipadx=20, ipady=10)
+        self.Bedit.pack_forget()
+
+        self.Badd = ttk.Button(Fadd, text='เพิ่ม', command=self.add_button)
+        self.Badd.pack(pady=10, ipadx=20, ipady=10)
+        #-----------------------------------------------------------------
+        header = ['ID', 'รหัสสินค้า', 'ชื่อสินค้า', 'ราคา']
+        hwidth = [50, 100, 200, 100]
+
+        self.table_product = ttk.Treeview(self.MGUI, columns=header, show='headings', height=30)
+        self.table_product.place(x=700,y=50)
+
+        # for hd in header:
+        #     table_member.heading(hd, text=hd)
+
+        for hd, hw in zip(header, hwidth):
+            self.table_product.heading(hd, text=hd) #ใส่หัวตาราง
+            self.table_product.column(hd ,width=hw) #ปรับความกว้างของคอลัมน์
+        self.table_product.bind('<Double-1>', self.update_product)
+        self.insert_table() # add product
+        self.table_product.bind('<Delete>', self.delete_product_database)
+        Fadd.mainloop()
 
     def selectFile(self):
         filetypes = (
@@ -227,6 +259,28 @@ class AddProduct:
 
         self.clearButton()
         self.create_button()
+        self.insert_table()
+
+    def update_product_to_database(self):
+        v1 = self.v_productid.get()
+        v2 = self.v_title.get()
+        v3 = float(self.v_price.get())
+        v4 = self.v_imgpath.get()
+
+        update_product(v1, 'productid', v1)
+        update_product(v1, 'title', v2)
+        update_product(v1, 'price', v3)
+        update_product(v1, 'image', v4)
+
+        self.v_productid.set('')
+        self.v_title.set('')
+        self.v_price.set('')
+        self.v_imgpath.set('')
+        self.insert_table()
+
+        self.clearButton()
+        self.create_button()
+
     # Refresh หน้าแสดงปุ่ม
     def clearButton(self):
         for b in self.button_list.values():
@@ -262,3 +316,59 @@ class AddProduct:
             column += 1
 
             # self.button_list = button_dict
+
+    def insert_table(self):
+        self.table_product.delete(*self.table_product.get_children())
+        data = View_product()
+        for d in data:
+            row = list(d)
+            self.table_product.insert('', 'end', value=row[:4])
+
+    def update_product(self, event):
+        self.Bsave.pack_forget()
+        self.Badd.pack_forget()
+        self.Bedit.pack(pady=10, ipadx=20, ipady=10)
+        self.Badd.pack(pady=10, ipadx=20, ipady=10)
+
+        select = self.table_product.selection()
+        pid = self.table_product.item(select)['values'][1]
+        print(pid)
+        data = View_product_single(pid)
+        print(data)
+        self.v_productid.set(data[1])
+        self.v_title.set(data[2])
+        self.v_price.set(data[3])
+        self.v_imgpath.set(data[4])
+
+        img = PhotoImage(file=data[4])
+        self.ProductImage.configure(image=img)
+        self.ProductImage.image = img
+
+
+    def add_button(self):
+        self.Bedit.pack_forget()
+        self.Bsave.pack(pady=10, ipadx=20, ipady=10)
+        self.Badd.pack(pady=10, ipadx=20, ipady=10)
+        self.v_productid.set('')
+        self.v_title.set('')
+        self.v_price.set('')
+        self.v_imgpath.set('')
+
+    def delete_product_database(self, event):
+        self.v_productid.set('')
+        self.v_title.set('')
+        self.v_price.set('')
+        self.v_imgpath.set('')
+
+        select = self.table_product.selection()
+        pid = self.table_product.item(select)['values'][0]
+
+        Delete_product(pid)
+        self.insert_table()
+
+
+
+
+
+if __name__ == '__main__':
+    test = AddProduct()
