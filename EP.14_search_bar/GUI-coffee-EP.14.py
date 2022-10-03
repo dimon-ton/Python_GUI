@@ -15,7 +15,7 @@ def writetocsv(data, filename='data.csv'):
         fw.writerow(data)
 
 GUI = Tk()
-GUI.title('โปรแกรมคำนวณ')
+GUI.title('โปรแกรมบันทึกการขายสินค้า')
 GUI.iconbitmap('EP.8\Kzzu-I-Love-You-Coffee-brown.ico')
 #full screen after run
 # GUI.state('zoomed')

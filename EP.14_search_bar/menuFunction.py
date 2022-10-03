@@ -153,6 +153,7 @@ class AddProduct:
         self.MGUI = Toplevel()
         self.MGUI.geometry('1200x900')
         self.MGUI.title('Add Product')
+        self.MGUI.iconbitmap('add.ico')
 
         self.v_productid = StringVar()
         self.v_title = StringVar()
