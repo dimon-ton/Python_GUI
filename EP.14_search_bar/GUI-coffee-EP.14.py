@@ -145,6 +145,7 @@ product = {'latte':{'name':'ลาเต้','price':30},
 
 product = product_icon_list()
 
+
 def UpdateTable():
     table.delete(*table.get_children()) #เคลียร์ข้อมูลเก่าในตาราง
     for i, m in enumerate(allmenu.values()):
