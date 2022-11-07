@@ -2,16 +2,12 @@ from tkinter import *
 from tkinter import ttk, messagebox
 import socket
 from datetime import datetime
-############Threading Server##############
+import threading
 import csv
-def writetocsv(data):
-	# data = ['toyota','red','1A11','1001','2022-05-07 15:29:15']
-	with open('2-car-system-in.csv','a',newline='',encoding='utf-8') as file:
-		fw = csv.writer(file)
-		fw.writerow(data) # no s is single line append
-	print('csv saved')
 
-	############split##############
+
+
+############split##############
 def splitrow(datalist, columns=7):
     result = []
     buflist = []
@@ -26,17 +22,27 @@ def splitrow(datalist, columns=7):
     return result
 
 ############ADRESS##############
-serverip = '192.168.0.100' # IP of GUI-1-car-system-out.py
+serverip = '192.168.1.93' # IP of 1-car-system-out.py
 port = 9000
 buffsize = 4096
+
+
+############CSV##############
+def writetocsv(data):
+	# data = ['toyota','red','1A11','1001','2022-05-07 15:29:15']
+	with open('2-car-system-in.csv','a',newline='',encoding='utf-8') as file:
+		fw = csv.writer(file)
+		fw.writerow(data) # no s is single line append
+	print('csv saved')
 
 plate_dict = {}
 # plate_dict = {'1กก99':['312341234',31234234,'13241234']}
 
-import threading
-serverip_location = '192.168.0.100' # IP of 3-GUI-car-system-location.py
+############Threading Server##############
+serverip_location = '192.168.1.93' # IP of 3-car-system-location.py
 port_location = 9500
 buffsize_location = 4096
+
 
 def LocationServer():
 	while True:
@@ -69,31 +75,35 @@ def LocationServer():
 
 
 
+
 GUI = Tk()
 GUI.title('[3] Location')
 GUI.geometry('500x500')
 
-FONT = ('Angsana New',20)
 
-L = Label(GUI,text='ป้ายทะเบียน',font=FONT)
+FONT = ('Angsana New', 20)
+
+L = Label(GUI, text='ป้ายทะเบียน', font=FONT)
 L.pack()
+
 v_plate = StringVar()
-E1 = ttk.Entry(GUI,textvariable=v_plate,font=FONT)
+E1 = ttk.Entry(GUI, textvariable=v_plate , font=FONT)
 E1.pack()
 
-L = Label(GUI,text='Zone',font=FONT)
-L.pack()
-v_zone = StringVar()
-E2 = ttk.Entry(GUI,textvariable=v_zone,font=FONT)
-E2.pack()
 
+L = Label(GUI, text='โซน', font=FONT)
+L.pack()
+
+v_zone = StringVar()
+E2 = ttk.Entry(GUI, textvariable=v_zone, font=FONT)
+E2.pack()
 
 def SaveData():
 	plate = v_plate.get()
 	getzone = v_zone.get()
 
-
 	# get data from server
+
 	text = 'location|allcar'
 	server = socket.socket()
 	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
@@ -109,6 +119,7 @@ def SaveData():
 			plate_dict[row[4]] = row # บันทึกข้อมูลของรถเก็บไว้เป็น dict
 	server.close()
 
+
 	if len(plate_dict[plate]) == 7:
 		# ยังไม่เคยกรอก ข้อมูลจะมีทั้ง 7 รายการ
 		plate_dict[plate].append(getzone)
@@ -116,8 +127,9 @@ def SaveData():
 		# ถ้าเคยกรอกไปแล้ว ต้องการเปลี่ยนให้ใช้แบบนี้
 		plate_dict[plate][7] = getzone
 
-B1 = ttk.Button(GUI,text='บันทึก',command=SaveData)
-B1.pack(ipadx=30,ipady=20,pady=10)
+
+B1 = ttk.Button(GUI, text='บันทึก', command=SaveData)
+B1.pack(ipadx=30, ipady=20, pady=10)
 
 
 ##########RUN THREAD##########

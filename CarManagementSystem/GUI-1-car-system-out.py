@@ -4,36 +4,38 @@ import socket
 import csv
 import uuid
 import threading
-
 ##############FEE##################
 from datetime import datetime
 
+
 def calculate_car_hour(dt='2022-05-08 12:27:18',first_hour=20,next_hour=10):
-    # only hour and minute
-    convert = datetime.strptime(dt,'%Y-%m-%d %H:%M:%S')
-    now = datetime.now()
-    delta = now - convert
-    hour = delta.seconds // 3600
-    minute = (delta.seconds % 3600) // 60
-    print('Parking time: {} Hours {} minutes'.format(hour,minute))
-    total = []
-    if hour > 1:
-        # ชั่วโมงแรก
-        total.append(first_hour) # ชั่วโมงแรก 20
-        total.append((hour - 1) * next_hour) # ชั่วโมงถัดไป
-    elif hour == 1:
-        total.append(first_hour)
+	# only hour and minute
+	convert = datetime.strptime(dt,'%Y-%m-%d %H:%M:%S')
+	now = datetime.now()
+	delta = now - convert
+	hour = delta.seconds // 3600
+	minute = (delta.seconds % 3600) // 60
+	print('Parking time: {} Hours {} minutes'.format(hour,minute))
+	total = []
+	if hour > 1:
+		# ชั่วโมงแรก
+		total.append(first_hour) # ชั่วโมงแรก 20
+		total.append((hour - 1) * next_hour) # ชั่วโมงถัดไป
+	elif hour == 1:
+		total.append(first_hour)
 
-    if minute > 15 and hour >= 1:
-        total.append(next_hour)
-    elif minute > 15 and hour == 0:
-        total.append(first_hour)
-    elif minute < 15:
-        pass
+	if minute > 15 and hour >= 1:
+		total.append(next_hour)
+	elif minute > 15 and hour == 0:
+		total.append(first_hour)
+	elif minute < 15:
+		pass
 
-    cal = sum(total)
-    print('Car park fee: {} baht'.format(cal))
-    return (hour,minute,cal) # (hour,minute,fee)
+	cal = sum(total)
+	print('Car park fee: {} baht'.format(cal))
+
+	return (hour, minute, cal) # (hour, minute, fee)
+
 
 
 ############CSV##############
@@ -44,13 +46,16 @@ def writetocsv(data):
 		fw.writerow(data) # no s is single line append
 	print('csv saved')
 
-############RUN SERVER##############
-serverip = '192.168.0.100' # IP of GUI-1-car-system-out.py
+
+
+############ADRESS##############
+serverip = '192.168.1.93'
 port = 9000
 buffsize = 4096
 
 car_dict = {}
 key_dict = {}
+
 
 def OutServer():
 	while True:
@@ -74,7 +79,7 @@ def OutServer():
 			# add key to value
 			car_dict[key].insert(0,key)
 			plate = data.split('|')[3]
-			print('PLATE:',plate)
+			print('PLATE', plate)
 			key_dict[plate] = key
 
 			# - บันทึกข้อมูลที่ได้รับจาก [2]
@@ -96,45 +101,47 @@ def OutServer():
 			pass
 
 
+
+
+
+
 GUI = Tk()
 GUI.title('[1] Out')
 GUI.geometry('500x500')
-FONT = ('Angsana New',20)
 
-L = Label(GUI,text='ป้ายทะเบียน',font=FONT)
+FONT = ('Angsana New', 20)
+
+L = Label(GUI, text='ป้ายทะเบียน', font=FONT)
 L.pack()
+
 v_plate = StringVar()
-E1 = ttk.Entry(GUI,textvariable=v_plate,font=FONT)
+E1 = ttk.Entry(GUI, textvariable=v_plate, font=FONT)
 E1.pack()
 
 def CarOut():
 	try:
 		data_plate = v_plate.get()
 		key = key_dict[data_plate]
-		print('Result:',car_dict[key])
+		print('result: ', car_dict[key])
 		result = car_dict[key]
-		# ['db01f0f1', 'in', 'Toyota', 'red', 'A9999', '1001', '2022-06-19 17:09:07']
 		hour, minute, fee = calculate_car_hour(result[-1])
 
-		text = 'รถยนต์ป้ายทะเบียน: {}\nเวลาที่จอด: {} ชั่วโมง {} นาที\nค่าจอดรถ: {}บาท'.format(result[4],hour,minute,fee)
+		text = 'รถยนต์ป้ายทะเบียน {}\nเวลาที่จอด: {} ชั่วโมง {} นาที\nค่าจอดรถ: {} บาท'.format(result[4], hour, minute, fee)
 		v_result.set(text)
 		del car_dict[key]
 		del key_dict[data_plate]
 	except:
-		messagebox.showinfo('รถออกแล้ว','รถคันนี้ได้ออกไปแล้วหรือไม่มีข้อมูลในระบบ')
+		messagebox.showinfo('รถออกแล้ว', 'รถคันนี้ออกไปแล้วหรือไม่มีข้อมูลในระบบ')
 
-B1 = ttk.Button(GUI,text='รถออก',command=CarOut)
-B1.pack(ipadx=30,ipady=20,pady=10)
-
+B1 = ttk.Button(GUI, text='ออก', command=CarOut)
+B1.pack(ipadx=30, ipady=20, pady=10)
 
 v_result = StringVar()
-v_result.set('---------Result--------')
-R1 = Label(GUI,textvariable=v_result,font=(30))
+v_result.set('-------------Result--------------')
+R1 = Label(GUI, textvariable=v_result, font=(30))
 R1.pack()
 
 
-# Start Server
 task = threading.Thread(target=OutServer)
 task.start()
-
 GUI.mainloop()

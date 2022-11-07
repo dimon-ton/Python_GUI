@@ -29,8 +29,8 @@ print(time.time())
 task2.start()
 
 # เมื่อทำงานเสร็จแล้ว ให้หยุดรอแปป
-# task1.join()
-# task2.join()
+task1.join()
+task2.join()
 
 
 t2 = time.time()
