@@ -7,12 +7,23 @@ from datetime import datetime
 from memberdb import *
 from productdb import *
 from menuFunction import *
+import requests
 
-
+# write data to csv
 def writetocsv(data, filename='data.csv'):
     with open(filename, 'a',newline='',encoding='utf-8') as file:
         fw = csv.writer(file)
         fw.writerow(data)
+
+# create qrcode for payment
+def QRImage(price=100, account='0887263735'):
+    url='https://promptpay.io/{}/{:.2f}'.format(account, price)
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open("EP.14_search_bar/qr-payment.png", "wb") as image:
+            image.write(response.content)
+
+
 
 GUI = Tk()
 GUI.title('โปรแกรมบันทึกการขายสินค้า')
@@ -26,7 +37,7 @@ style.configure('Treeview.Heading', font=(None, 12))
 style.configure('Treeview', font=(None, 12))
 #----------------------------------------------------------------
 
-W = 1100
+W = 1200
 H = 630
 MW = GUI.winfo_screenwidth()
 MH = GUI.winfo_screenheight()
@@ -148,30 +159,30 @@ product = product_icon_list()
 
 def UpdateTable():
     table.delete(*table.get_children()) #เคลียร์ข้อมูลเก่าในตาราง
-    for i, m in enumerate(allmenu.values()):
-        table.insert('', 'end', values=[i, m[0], m[1],m[2], m[3]])
+    for i, m in enumerate(allmenu.values(), start=1):
+        table.insert('', 'end', values=[i, m[0], m[1],m[2], m[3], m[4]])
 
     
 
 def AddMenu(name='latte'):
     # name = 'latte'
     if name not in allmenu:
-        allmenu[name] = [product[name]['name'], product[name]['price'], 1, product[name]['price']]
+        allmenu[name] = [product[name]['id'], product[name]['name'], product[name]['price'], 1, product[name]['price']]
         
         # table.insert('', 'end', value=[1, 'ลาเต้', 1, 30, 30])
     else:
-        quan = allmenu[name][2] + 1
+        quan = allmenu[name][3] + 1
         total = quan * product[name]['price']
-        allmenu[name] = [product[name]['name'], product[name]['price'], quan, total]
+        allmenu[name] = [product[name]['id'], product[name]['name'], product[name]['price'], quan, total]
 
     # resultTotal = 0
     # for a in allmenu:
     #     resultTotal += allmenu[a][3]
     # v_resultTotal.set(f'รวมราคา: {resultTotal} บาท')
-    count = sum([ m[3] for m in allmenu.values()])
+    count = sum([ m[4] for m in allmenu.values()])
     v_total.set('{:,.2f}'.format(count))
     
-    print(allmenu)
+    print('----> ALLMENU', allmenu)
     UpdateTable()
     # print(resultTotal)
 
@@ -248,8 +259,8 @@ B.grid(row=1, column=2, ipadx=20, ipady=10)
 CF2 = Frame(T3)
 CF2.place(x=500, y=100)
 
-header = ['No.', 'title', 'price', 'qualtity', 'total']
-hwidth = [50, 180, 100, 100, 100]
+header = ['No.','ID' , 'title', 'price', 'qualtity', 'total']
+hwidth = [50, 100, 180, 100, 100, 100]
 
 table = ttk.Treeview(CF2, columns=header, show='headings', height=15)
 table.pack()
@@ -260,6 +271,92 @@ table.pack()
 for hd, hw in zip(header, hwidth):
     table.heading(hd, text=hd) #ใส่หัวตาราง
     table.column(hd ,width=hw) #ปรับความกว้างของคอลัมน์
+
+# Delete product from table
+def DeleteProduct(event=None):
+    choice = messagebox.askyesno('ลบรายการ', 'คุณต้องการลบข้อมูลใช่หรือไม่')
+    print(choice)
+    if choice == True:
+        select = table.selection() #เลือก item
+        if len(select) != 0:
+            data = table.item(select)['values']
+            print(data)
+            del allmenu[data[1]]
+            # update total
+            count = sum([ m[4] for m in allmenu.values()])
+            v_total.set('{:,.2f}'.format(count))
+            # upate table
+            UpdateTable()
+ 
+        else:
+            messagebox.showwarning('เกิดข้อผิดพลาด', 'กรุณาเลือกรายการก่อนลบข้อมูล')
+    else:
+        pass
+
+table.bind('<Delete>', DeleteProduct)
+
+# Update quantity table
+def UpdateQuantity(event=None):
+    GUIQ = Toplevel()
+
+    W = 300
+    H = 200
+    MW = GUI.winfo_screenwidth()
+    MH = GUI.winfo_screenheight()
+
+    SX = (MW/2) - (W/2)
+    SY = (MH/2) - (H/2)
+    SY = SY -50
+
+    L = Label(GUIQ, text="กรุณากรอกจำนวนสินค้า", font=(None,20)).pack(pady=20)
+
+    v_newquan = IntVar()
+    v_newquan.set(1)
+    E1 = ttk.Entry(GUIQ, textvariable=v_newquan, font=(None, 20))
+    E1.pack(padx=20)
+    E1.focus()
+
+    select = table.selection() #เลือก item
+    print(select)
+    if len(select) != 0:
+        data = table.item(select)['values']
+        print(data)
+        
+        sid = data[1]
+        current_quan = data[4]
+        v_newquan.set(current_quan)
+
+    else:
+        messagebox.showwarning('เกิดข้อผิดพลาด', 'กรุณาเลือกรายการก่อนแก้ไขข้อมูล')
+
+    def save_update(event=None):
+
+        allmenu[sid][3] = v_newquan.get()
+        allmenu[sid][4] = v_newquan.get() * float(allmenu[sid][2]) # multiply by price
+
+        # update total
+        count = sum([ m[4] for m in allmenu.values()])
+        v_total.set('{:,.2f}'.format(count))
+        # upate table
+        UpdateTable()
+        GUIQ.destroy()
+
+
+    B1 = ttk.Button(GUIQ, text='บันทึก', command=save_update)
+    B1.pack(ipadx=20, ipady=10, pady=20)
+
+    GUIQ.bind('<Return>', save_update)
+
+    GUIQ.geometry('{}x{}+{:.0f}+{:.0f}'.format(W, H, SX, SY))
+    GUIQ.focus_force()
+    GUIQ.bind('<Escape>', lambda x: GUIQ.destroy())
+
+    E1.bind('<Up>', lambda x: v_newquan.set(v_newquan.get() + 1))
+    E1.bind('<Down>', lambda x: v_newquan.set(v_newquan.get() - 1))
+
+    GUIQ.mainloop()
+
+table.bind('<F12>', UpdateQuantity)
 
 # Sum result
 
@@ -303,14 +400,84 @@ def AddTransaction():
     transaction = v_transaction.get()
     print(transaction, stamp, allmenu.values())
     for m in allmenu.values():
+        del m[0]
         m.insert(0, transaction)
         m.insert(1,stamp)
+        print('-----> test', m)
         writetocsv(m, 'transaction.csv')
 
     Reset() # Clear Data
     messagebox.showinfo('หน้าต่างแสดงสถานะ', 'บันทึกข้อมูลเรียบร้อย')
 
-B = ttk.Button(FB, text='บันทึก', command=AddTransaction)
+
+def Checkout(event=None):
+    GUICO = Toplevel()
+
+    W = 500
+    H = 600
+    MW = GUI.winfo_screenwidth()
+    MH = GUI.winfo_screenheight()
+
+    SX = (MW/2) - (W/2)
+    SY = (MH/2) - (H/2)
+    SY = SY -50
+
+    text = 'ทั้งหมด {}'.format(v_total.get())
+    L = Label(GUICO, text=text,fg='green', font=(None,20)).pack(pady=20)
+
+    v_change = StringVar()
+    L2 = Label(GUICO, textvariable=v_change, fg='orange', font=(None, 20)).pack(pady=20)
+    v_change.set('--------------เงินทอน--------------')
+
+
+    v_cash = DoubleVar()
+    v_cash.set(0)
+    E1 = ttk.Entry(GUICO, textvariable=v_cash, font=(None, 20))
+    E1.pack(padx=20)
+    E1.focus()
+
+    global state
+    state = 1
+
+    def save(event=None):
+        global state
+        if state == 1:
+            total = float(v_total.get().replace(',',''))
+            calc = v_cash.get() - total
+            v_change.set('จำนวนเงินทอน: {} บาท'.format(calc))
+            state += 1
+            Bchange.config(text='บันทึก')
+        elif state == 2:
+            state = 1
+            Bchange.config(text='ยืนยันการบันทึก')
+            AddTransaction()
+            
+
+
+
+
+    Bchange = ttk.Button(GUICO, text='คำนวณเงินทอน', command=save)
+    Bchange.pack(ipadx=20, ipady=10, pady=20)
+
+    total = float(v_total.get().replace(',',''))
+    QRImage(total)
+
+    img = PhotoImage(file='EP.14_search_bar/qr-payment.png')
+    qrcode = Label(GUICO, image=img).pack()
+    
+
+    GUICO.bind('<Return>', save)
+
+    GUICO.geometry('{}x{}+{:.0f}+{:.0f}'.format(W, H, SX, SY))
+    GUICO.focus_force()
+    GUICO.bind('<Escape>', lambda x: GUICO.destroy())
+
+    E1.bind('<Up>', lambda x: v_cash.set(v_cash.get() + 100))
+    E1.bind('<Down>', lambda x: v_cash.set(v_cash.get() - 20))
+
+    GUICO.mainloop()
+
+B = ttk.Button(FB, text='บันทึก', command=Checkout)
 B.pack(ipadx=10, ipady=10)
 
 
@@ -361,7 +528,8 @@ def HistoryWindow(event=None):
     for hd, hw in zip(header, hwidth):
         table_history.heading(hd, text=hd) #ใส่หัวตาราง
         table_history.column(hd ,width=hw) #ปรับความกว้างของคอลัมน์
-        # update from CSV
+
+    # update from CSV
     with open('transaction.csv', newline='', encoding='utf-8') as file:
         fr = csv.reader(file)
         for row in fr:
