@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('EP.14_search_bar/productdb.sqlite3') # สร้างไฟล์ฐานข้อมูล
+conn = sqlite3.connect("C:\\Users\\saich\\Documents\\Python_GUI\\EP.14_search_bar\\productdb.sqlite3") # สร้างไฟล์ฐานข้อมูล
 c = conn.cursor()
 
 # สร้างตารางจัดเก็บ

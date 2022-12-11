@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('EP.14_search_bar/memberdb.sqlite3') # สร้างไฟล์ฐานข้อมูล
+conn = sqlite3.connect("C:\\Users\\saich\\Documents\\Python_GUI\\EP.14_search_bar\\memberdb.sqlite3") # สร้างไฟล์ฐานข้อมูล
 c = conn.cursor()
 
 # สร้างตารางจัดเก็บ
@@ -43,5 +43,19 @@ def Delete_member(ID):
     conn.commit()
     print('deleted')
 
+def Check_member(tel):
+    with conn:
+        command = 'SELECT * FROM member WHERE tel = (?)'
+        c.execute(command, ([tel]))
+        result = c.fetchall()
+        print("test Check_member: ", result)
+
+    if len(result) >= 1:
+        return True
+    else:
+        return False
+
+
 if __name__ == '__main__':
+    #  Check_member('0887263735')
     pass

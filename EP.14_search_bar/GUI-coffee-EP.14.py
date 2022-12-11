@@ -142,6 +142,67 @@ Bfont.configure('TButton',font=('Angsana New', 16))
 CF1 = Frame(T3)
 CF1.place(x=50, y=100)
 
+# check member if they exist
+def set_member():
+    GUIM = Toplevel()
+    W = 300
+    H = 200
+    MW = GUIM.winfo_screenwidth()
+    MH = GUIM.winfo_screenheight()
+
+    SX = (MW/2) - (W/2)
+    SY = (MH/2) - (H/2)
+    SY = SY -50
+
+    GUIM.geometry('{}x{}+{:.0f}+{:.0f}'.format(W, H, SX, SY))
+    GUIM.focus_force()
+
+
+    L = ttk.Label(GUIM, text='non-member')
+    L.pack(pady=20)
+
+    v_member.set('')
+    EMember = ttk.Entry(GUIM, textvariable=v_member, font=(None, 20))
+    EMember.pack(padx=20)
+    EMember.focus()
+
+    def Check(event=None):
+        c = Check_member(v_member.get())
+        if c == True:
+            v_member.set(v_member.get())
+            LM.configure(foreground='green')
+            GUIM.destroy()
+        else:
+            v_member.set('non-member')
+            LM.configure(foreground='red')
+
+    B = ttk.Button(GUIM, text='Check', command=Check)
+    B.pack(pady=20)
+    
+    def close_window(evemt=None):
+        v_member.set('non-member')
+        GUIM.destroy()
+        LM.configure(foreground='red')
+    
+    GUIM.protocol('WM_DELETE_WINDOW', close_window)
+
+    GUIM.bind('<Return>', Check)
+    GUIM.mainloop()
+
+
+img_member = PhotoImage(file='EP.14_search_bar/man-icon.png')
+Bmember = ttk.Button(T3, image=img_member, command=set_member)
+Bmember.place(x=50, y=30)
+
+v_member = StringVar()
+v_member.set('No member id')
+
+LM = ttk.Label(T3, textvariable=v_member, font=(None, 15))
+LM.place(x=120, y=50)
+
+
+
+
 allmenu = {}
 '''
 product = {'latte':{'name':'ลาเต้','price':30},
@@ -388,7 +449,7 @@ B = ttk.Button(T3, text='Reset', command=Reset).place(x=500, y=500)
 v_transaction = StringVar()
 trStamp = datetime.now().strftime('%y%m%d%H%M%S') # generate transaction ID
 v_transaction.set(trStamp)
-LTR = Label(T3, textvariable=v_transaction, font=(None, 10)).place(x=940, y=70)
+LTR = Label(T3, textvariable=v_transaction, font=(None, 10)).place(x=1020, y=70)
 
 # Save Button
 FB = Frame(T3)
@@ -403,7 +464,6 @@ def AddTransaction():
         del m[0]
         m.insert(0, transaction)
         m.insert(1,stamp)
-        print('-----> test', m)
         writetocsv(m, 'transaction.csv')
 
     Reset() # Clear Data
@@ -413,17 +473,35 @@ def AddTransaction():
 def Checkout(event=None):
     GUICO = Toplevel()
 
-    W = 500
-    H = 600
+    W = 800
+    H = 900
     MW = GUI.winfo_screenwidth()
     MH = GUI.winfo_screenheight()
 
     SX = (MW/2) - (W/2)
     SY = (MH/2) - (H/2)
     SY = SY -50
+    GUICO.geometry('{}x{}+{:.0f}+{:.0f}'.format(W, H, SX, SY))
+    GUICO.focus_force()
 
-    text = 'ทั้งหมด {}'.format(v_total.get())
-    L = Label(GUICO, text=text,fg='green', font=(None,20)).pack(pady=20)
+    # Calculate discount
+    global total
+    if v_member.get() != 'non-member':
+        discount = float(v_total.get().replace(',','')) * 0.05
+        total = float(v_total.get().replace(',','')) - discount
+    else:
+        discount = 0
+        total = float(v_total.get().replace(',',''))
+
+
+    text1 = 'ทั้งหมด {:,.2f}'.format(total)
+    L = Label(GUICO, text=text1,fg='green', font=(None,20)).pack(pady=10)
+
+    text2 = 'ส่วนลด {:,.2f}'.format(discount)
+    L = Label(GUICO, text=text2,fg='blue', font=(None,20)).pack(pady=10)
+
+    text3 = 'ปกติ {}'.format(v_total.get())
+    L = Label(GUICO, text=text3, font=(None,20)).pack(pady=10)
 
     v_change = StringVar()
     L2 = Label(GUICO, textvariable=v_change, fg='orange', font=(None, 20)).pack(pady=20)
@@ -440,11 +518,12 @@ def Checkout(event=None):
     state = 1
 
     def save(event=None):
+        global total
         global state
         if state == 1:
-            total = float(v_total.get().replace(',',''))
+            total = total
             calc = v_cash.get() - total
-            v_change.set('จำนวนเงินทอน: {} บาท'.format(calc))
+            v_change.set('จำนวนเงินทอน: {:,.2f} บาท'.format(calc))
             state += 1
             Bchange.config(text='บันทึก')
         elif state == 2:
@@ -459,17 +538,60 @@ def Checkout(event=None):
     Bchange = ttk.Button(GUICO, text='คำนวณเงินทอน', command=save)
     Bchange.pack(ipadx=20, ipady=10, pady=20)
 
-    total = float(v_total.get().replace(',',''))
     QRImage(total)
 
     img = PhotoImage(file='EP.14_search_bar/qr-payment.png')
     qrcode = Label(GUICO, image=img).pack()
     
 
+    # banknote function
+    global v_banknote
+    v_banknote = 0
+    def Banknote(banktype):
+        global v_banknote
+        v_banknote += banktype
+        print('Current bank accumulation: ', v_banknote)
+        v_cash.set(v_banknote)
+
+
+    BF = Frame(GUICO)
+    BF.pack(pady=20)
+
+    img_BN1 = PhotoImage(file='EP.14_search_bar/banknote/b1000.png')
+    BN1 = ttk.Button(BF, image=img_BN1, command=lambda b=1000: Banknote(b))
+    BN1.grid(row=0,column=0, padx=10, pady=10)
+
+    img_BN2 = PhotoImage(file='EP.14_search_bar/banknote/b500.png')
+    BN2 = ttk.Button(BF, image=img_BN2, command=lambda b=500: Banknote(b))
+    BN2.grid(row=0,column=1, padx=10, pady=10)
+
+    img_BN3 = PhotoImage(file='EP.14_search_bar/banknote/b100.png')
+    BN3 = ttk.Button(BF, image=img_BN3, command=lambda b=100: Banknote(b))
+    BN3.grid(row=0,column=2, padx=10, pady=10)
+
+    img_BN4 = PhotoImage(file='EP.14_search_bar/banknote/b50.png')
+    BN4 = ttk.Button(BF, image=img_BN4, command=lambda b=50: Banknote(b))
+    BN4.grid(row=1,column=0, padx=10, pady=10)
+
+    img_BN5 = PhotoImage(file='EP.14_search_bar/banknote/b20.png')
+    BN5 = ttk.Button(BF, image=img_BN5, command=lambda b=20: Banknote(b))
+    BN5.grid(row=1,column=1, padx=10, pady=10)
+
+
+    BN5 = ttk.Button(BF, text='10', command=lambda b=10: Banknote(b))
+    BN5.grid(row=1,column=2, padx=10, pady=10)
+
+    L = ttk.Label(GUICO, text='* กดปุ่ม F12 เพื่อรีเซ็ตจำนวนเงิน').pack()
+
+    def clear_banknote(event=None):
+        global v_banknote
+        v_banknote = 0
+        v_cash.set(0)
+
+
+    GUICO.bind('<F12>', clear_banknote)
     GUICO.bind('<Return>', save)
 
-    GUICO.geometry('{}x{}+{:.0f}+{:.0f}'.format(W, H, SX, SY))
-    GUICO.focus_force()
     GUICO.bind('<Escape>', lambda x: GUICO.destroy())
 
     E1.bind('<Up>', lambda x: v_cash.set(v_cash.get() + 100))
@@ -483,7 +605,7 @@ B.pack(ipadx=10, ipady=10)
 
 # search menu
 FS1 = Frame(T3)
-FS1.place(x=300, y=30)
+FS1.place(x=500, y=30)
 v_search_barcode = StringVar()
 Esearch = ttk.Entry(FS1, textvariable=v_search_barcode, font=('Angsana New', 25, 'bold'))
 Esearch.grid(row=0, column=0, ipadx=25)
