@@ -9,6 +9,11 @@ from productdb import *
 from menuFunction import *
 import requests
 
+from bill import printBill
+
+
+
+
 # write data to csv
 def writetocsv(data, filename='data.csv'):
     with open(filename, 'a',newline='',encoding='utf-8') as file:
@@ -178,6 +183,8 @@ def set_member():
 
     B = ttk.Button(GUIM, text='Check', command=Check)
     B.pack(pady=20)
+
+    
     
     def close_window(evemt=None):
         v_member.set('non-member')
@@ -195,10 +202,12 @@ Bmember = ttk.Button(T3, image=img_member, command=set_member)
 Bmember.place(x=50, y=30)
 
 v_member = StringVar()
-v_member.set('No member id')
+v_member.set('non-member')
 
 LM = ttk.Label(T3, textvariable=v_member, font=(None, 15))
 LM.place(x=120, y=50)
+
+LM.configure(foreground='red')
 
 
 
@@ -527,9 +536,20 @@ def Checkout(event=None):
             state += 1
             Bchange.config(text='บันทึก')
         elif state == 2:
+            # ------------------- print bill -------------------------
+            printout = []
+
+            for m in allmenu.values():
+                printout.append(m[1:])
+
+            # run function print bill
+
+            printBill(product=printout, printer=False, openfile=True)
+
+            AddTransaction()
             state = 1
             Bchange.config(text='ยืนยันการบันทึก')
-            AddTransaction()
+            
             
 
 
